@@ -8,7 +8,6 @@ from django.contrib.auth.models import User
 class Categoria(models.Model):
     # nombre: texto corto y obligatorio; unique=True impide dos categorías con el mismo nombre
     nombre = models.CharField(max_length=60, unique=True)
-
     # descripcion: texto largo opcional; blank=True permite dejarlo vacío en los formularios
     descripcion = models.TextField(blank=True)
 
@@ -37,14 +36,12 @@ class Servicio(models.Model):
     # precio: decimal con 2 dígitos después del punto; no cambia
     precio = models.DecimalField(max_digits=8, decimal_places=2)
 
-    # categoria: la columna de TEXTO vieja; se queda por ahora para no perder lo que ya escribiste
-    categoria = models.CharField(max_length=60)
-
-    # categoria_ref: NUEVA llave foránea a Categoria (temporal; en el paso 04 se renombra a "categoria")
+    # categoria: llave foránea a Categoria; en MySQL la columna se llama categoria_id
     # on_delete=PROTECT: MySQL no deja borrar una categoría si todavía tiene servicios
-    # null=True: los servicios que ya existen quedan vacíos hasta que el paso 03 les copie su categoría
+    # null=True: conserva compatibilidad con los registros existentes durante esta migración
     # related_name='servicios': desde una categoría se llega a sus servicios con categoria.servicios
-    categoria_ref = models.ForeignKey(Categoria, on_delete=models.PROTECT, null=True, related_name='servicios')
+    categoria = models.ForeignKey(Categoria, on_delete=models.PROTECT, null=True, related_name='servicios')
+
 
     # creado_en: fecha y hora de creación automática; no cambia
     creado_en = models.DateTimeField(auto_now_add=True)
