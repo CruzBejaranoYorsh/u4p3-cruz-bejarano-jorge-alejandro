@@ -38,3 +38,6 @@ class FacturaAdmin(admin.ModelAdmin):
     list_display = ['folio', 'cliente', 'fecha', 'usuario']
     # inlines: dibuja la tabla de renglones debajo de los datos de la factura
     inlines = [DetalleFacturaInline]
+
+
+    #git commit de correccion
