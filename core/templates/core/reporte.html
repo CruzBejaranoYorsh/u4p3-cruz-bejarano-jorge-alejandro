@@ -74,10 +74,10 @@
         <tbody>
           {# for: una fila por cada fila del resultado #}
           {% for fila in filas %}
-          {# tr: even:bg-slate-50 pinta de gris una fila sí y una no (efecto cebra) #}
-          <tr class="border-t border-slate-100 even:bg-slate-50 hover:bg-blue-50">
+          {# empate: las filas con el mismo mínimo/máximo o el mismo lugar por categoría se pintan de verde #}
+          <tr class="border-t border-slate-100 {% if fila.empate %}bg-emerald-100{% else %}even:bg-slate-50{% endif %} hover:bg-blue-50">
             {# for: una celda por valor #}
-            {% for celda in fila %}
+            {% for celda in fila.celdas %}
             {# td: si es número se alinea a la derecha con números de ancho fijo (tabular-nums) #}
             <td class="px-4 py-2 {% if celda.numero %}text-right tabular-nums{% endif %}">{{ celda.texto }}</td>
             {# endfor: fin de las celdas #}

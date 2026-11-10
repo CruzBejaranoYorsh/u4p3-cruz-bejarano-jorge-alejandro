@@ -1,5 +1,7 @@
 # render, redirect, get_object_or_404: los mismos atajos de Django que ya usabas en la Semana 5
 from django.shortcuts import render, redirect, get_object_or_404
+# Counter: cuenta cuántas veces aparece cada clave para resaltar solo los empates
+from collections import Counter
 # connection: datos de la conexión a la base (lo usa la vista "inicio" de la Semana 3)
 from django.db import connection
 # login_required: decorador que exige sesión iniciada antes de entrar a la vista
@@ -16,6 +18,18 @@ from django.core.paginator import Paginator
 from .models import Servicio
 # ServicioForm: el ModelForm de la Semana 5
 from .forms import ServicioForm
+
+
+def _filas_con_empates(clave, filas):
+    if clave == 'precio-minimo-y-maximo':
+        claves = [(fila[0], fila[3]) for fila in filas]
+    elif clave == 'ranking-por-categoria':
+        claves = [(fila[0], fila[1]) for fila in filas]
+    else:
+        return [False] * len(filas)
+
+    conteos = Counter(claves)
+    return [conteos[clave_fila] > 1 for clave_fila in claves]
 
 
 # inicio: la vista de la Semana 3 que muestra a qué base estás conectado (no cambia)
@@ -516,8 +530,16 @@ def reporte(request, clave):
         escritor.writerows(filas)
         # entrega el archivo
         return respuesta
-    # celdas: cada valor convertido a {'texto', 'numero'} para dibujarlo bonito y alinear los números
-    celdas = [[reportes_sql.formatear(valor) for valor in fila] for fila in filas]
+    # empates: identifica precios repetidos en el reporte 3 y rangos repetidos por categoría en el 6
+    empates = _filas_con_empates(clave, filas) if not ver_plan and error is None else [False] * len(filas)
+    # filas_vista: prepara las celdas y marca cuáles filas deben resaltarse en verde
+    filas_vista = [
+        {
+            'celdas': [reportes_sql.formatear(valor) for valor in fila],
+            'empate': empate,
+        }
+        for fila, empate in zip(filas, empates)
+    ]
     # contexto: todo lo que la plantilla necesita
     contexto = {
         # consulta: título, técnica, descripción y SQL
@@ -527,7 +549,7 @@ def reporte(request, clave):
         # columnas: encabezados de la tabla
         'columnas': columnas,
         # filas: las celdas ya formateadas
-        'filas': celdas,
+        'filas': filas_vista,
         # milisegundos: redondeado a 1 decimal
         'milisegundos': round(milisegundos, 1),
         # ver_plan: para marcar qué botón está activo
